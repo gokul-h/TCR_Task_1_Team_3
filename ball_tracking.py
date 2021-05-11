@@ -28,6 +28,10 @@ class DetectGreenBall(object):
 
     def get_frame(self):
         while True:
+            # p_area is initialised to zero since if in a frame no contour is detected
+            # the loop to calculate p_area will not be executed which will throw an error
+            global p_area
+            p_area = 0
             # Boolean to store if frames are present or not
             isTrue, frame = self.video.read()
 
@@ -63,9 +67,25 @@ class DetectGreenBall(object):
                 # Draw the Rectangle in each frame for largest contour
                 x, y, w, h = cv2.boundingRect(c)
                 cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
+                
+                # Find the area of current rectangle
+                rect_area = w * h
+                # Find total area
+                total_area = frame.shape[0] * frame.shape[1]
+                # Find the percentage of area covered
+                p_area = (rect_area / total_area) * 100
+                
+            # To print the value in the frame itself
+            new = cv2.putText(frame, str(p_area), (50, 50),
+                              cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2, cv2.LINE_AA, False)
+
+            # To filter out small errors in detection
+            # To print the values in python console
+            if p_area >= 1:
+                print(f'Percentage of area is {p_area}')
 
             # Encode OpenCV raw frame to jp and display it
-            ret, jpeg = cv2.imencode(".jpg", frame)
+            ret, jpeg = cv2.imencode(".jpg", new)
             return jpeg.tobytes()
 
 # Requirements
